@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    /* Mengatur style untuk canvas */
+    canvas {
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <!-- Membuat elemen canvas dengan id "game" -->
+  <canvas id="game" width="400" height="400"></canvas>
+  <script>
+    // Mendapatkan referensi ke elemen canvas
+    var canvas = document.getElementById("game");
+    // Mendapatkan konteks 2D dari canvas
+    var ctx = canvas.getContext("2d");
+    // Mendefinisikan ukuran kotak yang akan digunakan untuk menggambar ular dan makanan
+    var box = 20;
+    // Mendefinisikan variabel untuk menyimpan skor
+    var score = 0;
+    // Mendefinisikan variabel untuk menyimpan arah ular
+    var direction = "right";
+    // Mendefinisikan array untuk menyimpan posisi ular
+    var snake = [];
+    // Menambahkan posisi awal ular di tengah canvas
+    snake[0] = {
+      x: 9 * box,
+      y: 9 * box
+    };
+    // Mendefinisikan objek untuk menyimpan posisi makanan
+    var food = {
+      // Menggunakan fungsi Math.random() untuk menghasilkan nilai acak antara 0 dan 1
+      // Mengalikan nilai tersebut dengan lebar atau tinggi canvas dibagi dengan ukuran kotak
+      // Menggunakan fungsi Math.floor() untuk membulatkan nilai tersebut ke bawah
+      x: Math.floor(Math.random() * canvas.width / box) * box,
+      y: Math.floor(Math.random() * canvas.height / box) * box
+    };
+    // Membuat fungsi untuk menggambar elemen-elemen di canvas
+    function draw() {
+      // Mengisi background canvas dengan warna abu-abu
+      ctx.fillStyle = "lightgray";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Menggambar ular dengan menggunakan loop for
+      for (var i = 0; i < snake.length; i++) {
+        // Mengisi kotak dengan warna hijau
+        ctx.fillStyle = "green";
+        // Menggambar kotak dengan posisi dan ukuran yang sesuai dengan elemen array ular
+        ctx.fillRect(snake[i].x, snake[i].y, box, box);
+        // Menggambar garis tepi kotak dengan warna hitam
+        ctx.strokeStyle = "black";
+        ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+      }
+      // Mengisi kotak makanan dengan warna merah
+      ctx.fillStyle = "red";
+      // Menggambar kotak makanan dengan posisi dan ukuran yang sesuai dengan objek makanan
+      ctx.fillRect(food.x, food.y, box, box);
+      // Mendapatkan posisi kepala ular
+      var headX = snake[0].x;
+      var headY = snake[0].y;
+      // Mengubah posisi kepala ular sesuai dengan arahnya
+      if (direction == "right") headX += box;
+      if (direction == "left") headX -= box;
+      if (direction == "up") headY -= box;
+      if (direction == "down") headY += box;
+      // Membuat objek baru untuk menyimpan posisi kepala ular yang baru
+      var newHead = {
+        x: headX,
+        y: headY
+      };
+      // Mengecek apakah ular menabrak tembok atau tubuhnya sendiri
+      if (headX < 0 || headX > canvas.width - box || headY < 0 || headY > canvas.height - box || collision(newHead, snake)) {
+        // Menghentikan permainan dengan menggunakan fungsi clearInterval()
+        clearInterval(game);
+        // Menampilkan kotak dialog dengan pesan dan dua pilihan
+        // Menyimpan nilai yang dikembalikan oleh fungsi confirm() ke variabel restart
+        var restart = confirm("Apakah Anda ingin bermain lagi?");
+        // Mengecek nilai variabel restart
+        if (restart) {
+          // Memuat ulang halaman dengan menggunakan fungsi location.reload()
+          location.reload();
+        } else {
+          // Menampilkan pesan game over
+          alert("Game Over!");
+        }
+      }
+      // Mengecek apakah ular memakan makanan
+      if (headX == food.x && headY == food.y) {
+        // Menambahkan skor
+        score++;
+        // Membuat makanan baru di posisi acak
+        food = {
+          x: Math.floor(Math.random() * canvas.width / box) * box,
+          y: Math.floor(Math.random() * canvas.height / box) * box
+        };
+      } else {
+        // Menghapus elemen terakhir array ular
+        snake.pop();
+      }
+      // Menambahkan elemen baru di awal array ular
+      snake.unshift(newHead);
+      // Menampilkan skor di pojok kiri atas
+      ctx.fillStyle = "black";
+      ctx.font = "20px Arial";
+      ctx.fillText("Score: " + score, box, box);
+    }
+    // Membuat fungsi untuk mengecek tabrakan antara dua objek
+    function collision(obj1, obj2) {
+      // Menggunakan loop for untuk mengecek setiap elemen array
+      for (var i = 0; i < obj2.length; i++) {
+        // Mengembalikan nilai true jika objek1 memiliki koordinat x dan y yang sama dengan elemen array objek2
+        if (obj1.x == obj2[i].x && obj1.y == obj2[i].y) {
+          return true;
+        }
+      }
+      // Mengembalikan nilai false jika tidak ada tabrakan
+      return false;
+    }
+    // Membuat fungsi untuk mengatur arah ular dengan menangkap event keydown
+    document.addEventListener("keydown", function(event) {
+      // Menggunakan switch case untuk mengecek nilai keyCode dari event
+      switch (event.keyCode) {
+        // Jika keyCode adalah 37 (tombol panah kiri) dan arah bukan kanan
+        case 37:
+          if (direction != "right") {
+            // Mengubah arah menjadi kiri
+            direction = "left";
+          }
+          break;
+        // Jika keyCode adalah 38 (tombol panah atas) dan arah bukan bawah
+        case 38:
+          if (direction != "down") {
+            // Mengubah arah menjadi atas
+            direction = "up";
+          }
+          break;
+        // Jika keyCode adalah 39 (tombol panah kanan) dan arah bukan kiri
+        case 39:
+          if (direction != "left") {
+            // Mengubah arah menjadi kanan
+            direction = "right";
+          }
+          break;
+        // Jika keyCode adalah 40 (tombol panah bawah) dan arah bukan atas
+        case 40:
+          if (direction != "up") {
+            // Mengubah arah menjadi bawah
+            direction = "down";
+          }
+          break;
+      }
+    });
+    // Membuat variabel untuk menyimpan interval waktu
+    var game = setInterval(draw, 100);
+  </script>
+</body>
+</html>
